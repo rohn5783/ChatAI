@@ -1,5 +1,6 @@
-import userModel from "../model/user.model";
+import userModel from "../model/user.model.js";
 import jwt from "jsonwebtoken";
+import { sendEmail } from "../services/mail.service.js";
 
 
 export  async function register(req, res) {
@@ -101,44 +102,39 @@ export async function getMe(req, res) {
 }
 
 
-export async function  verifyEmail(req,res) {
-    const {token} = req.query;
-  try {
+export async function verifyEmail(req, res) {
+    const { token } = req.query;
 
-
+    try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-
-        const user = await userModel.findOne({ email: decoded.email });
+        const user = await userModel.findById(decoded.userId);
 
         if (!user) {
             return res.status(400).json({
                 message: "Invalid token",
                 success: false,
                 err: "User not found"
-            })
+            });
         }
 
         user.verified = true;
-
         await user.save();
 
-        const html =
-            `
-        <h1>Email Verified Successfully!</h1>
-        <p>Your email has been verified. You can now log in to your account.</p>
-        <a href="http://localhost:3000/login">Go to Login</a>
-    `
+        return res.send(`
+            <h1>Email Verified Successfully!</h1>
+            <p>You can now login.</p>
+            <a href="http://localhost:3000/login">Login</a>
+        `);
 
-        return res.send(html);
     } catch (err) {
         return res.status(400).json({
             message: "Invalid or expired token",
             success: false,
             err: err.message
-        })
+        });
     }
-    }
+}
 
 
 
