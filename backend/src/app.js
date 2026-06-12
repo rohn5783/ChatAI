@@ -3,8 +3,10 @@ const app = express();
 import connectDB from "../config/database.js";
 import authRouter from "../routes/auth.routes.js";
 import chatRouter from "../routes/chat.routes.js";
+import aiRouter from "../routes/ai.routes.js";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
+
 import cors from "cors";
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -22,6 +24,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/chats", chatRouter);
+app.use("/api/ai", aiRouter);
 
 connectDB();
 

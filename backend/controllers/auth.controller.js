@@ -67,6 +67,11 @@ if (!user.comparePassword(password)) {
 
 
 const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+res.cookie("token", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 24 * 60 * 60 * 1000,
+});
 res.status(200).json({ message: "Login successful",
     success: true,
     token,
@@ -74,10 +79,23 @@ res.status(200).json({ message: "Login successful",
         id: user._id,
         username: user.username,
         email: user.email,
+        
     }
 })
 }
 
+
+export async function logout(req, res) {
+    res.clearCookie("token", {
+        httpOnly: true,
+        sameSite: "lax",
+    });
+
+    res.status(200).json({
+        message: "Logout successful",
+        success: true,
+    });
+}
 
 
 

@@ -1,7 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hook/useAuth';
 import '../styles/auth.css';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { registerUser } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -28,7 +32,7 @@ const Register = () => {
   };
 
   // Form submission handler
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     
     // Validation
@@ -47,21 +51,10 @@ const Register = () => {
 
     try {
       setLoading(true);
-      // TODO: Replace with your API call
-      console.log('Register attempt:', formData);
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
-      // const data = await response.json();
-      // if (data.success) {
-      //   // Handle successful registration
-      //   localStorage.setItem('token', data.token);
-      //   navigate('/dashboard');
-      // }
+      await registerUser(formData.username, formData.email, formData.password);
+      navigate('/dashboard');
     } catch (error) {
-      setErrors({ submit: 'An error occurred. Please try again.' });
+      setErrors({ submit: error.message || error.err || 'An error occurred. Please try again.' });
       console.error('Register error:', error);
     } finally {
       setLoading(false);
@@ -77,7 +70,7 @@ const Register = () => {
             <p className="auth-subtitle">Join us today</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="auth-form">
+          <form onSubmit={handleRegister} className="auth-form">
             {/* Username Field */}
             <div className="form-group">
               <label htmlFor="username" className="form-label">Username</label>

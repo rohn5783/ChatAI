@@ -1,9 +1,13 @@
 
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hook/useAuth';
 import '../styles/auth.css';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { loginUser } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -29,7 +33,7 @@ const Login = () => {
   };
 
   // Form submission handler
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     
     // Validation
@@ -45,21 +49,10 @@ const Login = () => {
 
     try {
       setLoading(true);
-      // TODO: Replace with your API call
-      console.log('Login attempt:', formData);
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
-      // const data = await response.json();
-      // if (data.success) {
-      //   // Handle successful login
-      //   localStorage.setItem('token', data.token);
-      //   navigate('/dashboard');
-      // }
+      await loginUser(formData.email, formData.password);
+      navigate('/dashboard');
     } catch (error) {
-      setErrors({ submit: 'An error occurred. Please try again.' });
+      setErrors({ submit: error.message || error.err || 'An error occurred. Please try again.' });
       console.error('Login error:', error);
     } finally {
       setLoading(false);
@@ -75,7 +68,7 @@ const Login = () => {
             <p className="auth-subtitle">Sign in to your account</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="auth-form">
+          <form onSubmit={handleLogin} className="auth-form">
             {/* Email Field */}
             <div className="form-group">
               <label htmlFor="email" className="form-label">Email Address</label>

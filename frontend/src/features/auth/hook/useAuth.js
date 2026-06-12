@@ -1,5 +1,6 @@
+import { useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { register, login, logout, getCurrentUser  } from "../service/auth.api";
+import { register, login, logout, getCurrentUser as fetchCurrentUser } from "../service/auth.api";
 import {
   setUser,
   setIsAuthenticated,
@@ -10,57 +11,74 @@ import {
 export function useAuth() {
   const dispatch = useDispatch();
 
-  async function registerUser(username, email, password) {
+  const registerUser = useCallback(async (username, email, password) => {
     try {
       dispatch(setLoading(true));
       const response = await register(username, email, password);
       dispatch(setUser(response.user));
       dispatch(setIsAuthenticated(true));
       dispatch(setLoading(false));
+      return response;
     } catch (error) {
       dispatch(setError(error.message));
       dispatch(setLoading(false));
+      throw error;
     }
-  }
+  }, [dispatch]);
 
-  async function loginUser(email, password) {
+  const loginUser = useCallback(async (email, password) => {
     try {
       dispatch(setLoading(true));
       const response = await login(email, password);
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+      }
       dispatch(setUser(response.user));
       dispatch(setIsAuthenticated(true));
       dispatch(setLoading(false));
+      return response;
     } catch (error) {
+      dispatch(setUser(null));
+      dispatch(setIsAuthenticated(false));
       dispatch(setError(error.message));
       dispatch(setLoading(false));
+      throw error;
     }
-  }
+  }, [dispatch]);
 
-  async function logoutUser() {
+  const logoutUser = useCallback(async () => {
     try {
       dispatch(setLoading(true));
-      const response = await logout();
+      await logout();
+      return true;
+    } catch (error) {
+      dispatch(setError(error.message));
+      return false;
+    } finally {
+      localStorage.removeItem("token");
       dispatch(setUser(null));
       dispatch(setIsAuthenticated(false));
       dispatch(setLoading(false));
-    } catch (error) {
-      dispatch(setError(error.message));
-      dispatch(setLoading(false));
     }
-  }
+  }, [dispatch]);
 
-  async function getCurrentUser() {
+  const getCurrentUser = useCallback(async () => {
     try {
       dispatch(setLoading(true));
-      const response = await getCurrentUser();
+      const response = await fetchCurrentUser();
       dispatch(setUser(response.user));
       dispatch(setIsAuthenticated(true));
       dispatch(setLoading(false));
+      return response;
     } catch (error) {
+      dispatch(setUser(null));
+      dispatch(setIsAuthenticated(false));
+      localStorage.removeItem("token");
       dispatch(setError(error.message));
       dispatch(setLoading(false));
+      throw error;
     }
-    }
+  }, [dispatch]);
 
   return {
     registerUser,
