@@ -1,54 +1,39 @@
-.dashboard-page {
-  min-height: 100vh;
-  position: relative;
+/* Button micro-interactions and transitions */
+
+button,
+.submit-btn,
+.quick-auth-btn,
+.logout-button,
+.dashboard-new-thread,
+.dashboard-nav-link,
+.dashboard-chat-link,
+.dashboard-mode-button,
+.dashboard-send-button {
+  transition: 
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
 }
 
-.dashboard-actions {
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  align-items: center;
-  display: flex;
-  gap: 12px;
+/* Apple style button active states (scale down when clicked) */
+button:active,
+.submit-btn:active,
+.quick-auth-btn:active,
+.logout-button:active,
+.dashboard-new-thread:active,
+.dashboard-nav-link:active,
+.dashboard-chat-link:active,
+.dashboard-mode-button:active,
+.dashboard-send-button:active {
+  transform: scale(0.97) !important;
 }
 
-.dashboard-username {
-  color: #111827;
-  font-size: 0.95rem;
-  font-weight: 600;
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.logout-button {
-  border: 0;
-  border-radius: 8px;
-  background: #dc2626;
-  color: #ffffff;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1;
-  padding: 12px 18px;
-  transition:
-    background-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.logout-button:hover {
-  background: #b91c1c;
-  box-shadow: 0 8px 18px rgba(220, 38, 38, 0.24);
-  transform: translateY(-1px);
-}
-
-.logout-button:focus-visible {
-  outline: 3px solid rgba(220, 38, 38, 0.32);
-  outline-offset: 3px;
-}
-
-.logout-button:active {
-  transform: translateY(0);
+/* Disabled state reset */
+button:disabled {
+  transform: none !important;
+  opacity: 0.5;
+  cursor: not-allowed;
 }

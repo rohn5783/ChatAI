@@ -42,6 +42,16 @@ export async function login(email, password) {
   }
 }
 
+export async function quickLogin() {
+  try {
+    return await request("/quick-login", {
+      method: "POST",
+    });
+  } catch (error) {
+    throw error.message ? error : new Error("Network error");
+  }
+}
+
 export async function logout() {
   try {
     return await request("/logout", {

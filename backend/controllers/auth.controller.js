@@ -154,6 +154,41 @@ export async function verifyEmail(req, res) {
     }
 }
 
+export async function quickLogin(req, res) {
+    try {
+        const demoEmail = "demo@perplexity.ai";
+        let user = await userModel.findOne({ email: demoEmail });
+        if (!user) {
+            user = await userModel.create({
+                username: "DemoUser",
+                email: demoEmail,
+                password: "demoPassword123",
+                verified: true,
+            });
+        }
 
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        res.cookie("token", token, {
+            httpOnly: true,
+            sameSite: "lax",
+            maxAge: 24 * 60 * 60 * 1000,
+        });
 
-
+        return res.status(200).json({
+            message: "Quick Login successful",
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({
+            message: "Quick Login failed",
+            success: false,
+            err: err.message
+        });
+    }
+}

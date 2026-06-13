@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useDispatch } from "react-redux";
-import { register, login, logout, getCurrentUser as fetchCurrentUser } from "../service/auth.api";
+import { register, login, logout, quickLogin, getCurrentUser as fetchCurrentUser } from "../service/auth.api";
 import {
   setUser,
   setIsAuthenticated,
@@ -30,6 +30,26 @@ export function useAuth() {
     try {
       dispatch(setLoading(true));
       const response = await login(email, password);
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+      }
+      dispatch(setUser(response.user));
+      dispatch(setIsAuthenticated(true));
+      dispatch(setLoading(false));
+      return response;
+    } catch (error) {
+      dispatch(setUser(null));
+      dispatch(setIsAuthenticated(false));
+      dispatch(setError(error.message));
+      dispatch(setLoading(false));
+      throw error;
+    }
+  }, [dispatch]);
+
+  const quickLoginUser = useCallback(async () => {
+    try {
+      dispatch(setLoading(true));
+      const response = await quickLogin();
       if (response.token) {
         localStorage.setItem("token", response.token);
       }
@@ -83,6 +103,7 @@ export function useAuth() {
   return {
     registerUser,
     loginUser,
+    quickLoginUser,
     logoutUser,
     getCurrentUser,
   };

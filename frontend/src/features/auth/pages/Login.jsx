@@ -1,5 +1,3 @@
-
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hook/useAuth';
@@ -7,7 +5,7 @@ import '../styles/auth.css';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { loginUser } = useAuth();
+  const { loginUser, quickLoginUser } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -59,14 +57,46 @@ const Login = () => {
     }
   };
 
+  // Quick Sign In handler
+  const handleQuickLogin = async () => {
+    try {
+      setLoading(true);
+      setErrors({});
+      await quickLoginUser();
+      navigate('/dashboard');
+    } catch (error) {
+      setErrors({ submit: error.message || error.err || 'Quick Login failed. Please try traditional login.' });
+      console.error('Quick Login error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-wrapper">
         <div className="auth-card">
           <div className="auth-header">
             <h1 className="auth-title">Welcome Back</h1>
-            <p className="auth-subtitle">Sign in to your account</p>
+            <p className="auth-subtitle">Sign in to Perplexity Workspace</p>
           </div>
+
+          {/* Quick Authentication Button */}
+          <div className="quick-auth-section">
+            <button 
+              type="button" 
+              onClick={handleQuickLogin} 
+              className="quick-auth-btn"
+              disabled={loading}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '2px' }}>
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              Quick Sign In (One Click)
+            </button>
+          </div>
+
+          <div className="auth-divider">or continue with email</div>
 
           <form onSubmit={handleLogin} className="auth-form">
             {/* Email Field */}
@@ -78,8 +108,9 @@ const Login = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter your email"
+                placeholder="name@example.com"
                 className={`form-input ${errors.email ? 'input-error' : ''}`}
+                disabled={loading}
               />
               {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
@@ -93,8 +124,9 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Enter your password"
+                placeholder="Enter password"
                 className={`form-input ${errors.password ? 'input-error' : ''}`}
+                disabled={loading}
               />
               {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
@@ -108,7 +140,7 @@ const Login = () => {
               className="submit-btn"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Processing...' : 'Sign In'}
             </button>
           </form>
 
