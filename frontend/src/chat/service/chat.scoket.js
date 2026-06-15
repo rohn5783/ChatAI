@@ -30,12 +30,13 @@ export function getChatMessages(chatId) {
   return request(`/${chatId}/messages`);
 }
 
-export function sendChatMessage({ message, chatId }) {
+export function sendChatMessage({ message, chatId, fileIds }) {
   return request("/message", {
     method: "POST",
     body: JSON.stringify({
       message,
       ...(chatId ? { chatId } : {}),
+      ...(fileIds ? { fileIds } : {}),
     }),
   });
 }

@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import Login from '../features/auth/pages/Login';
 import Register from '../features/auth/pages/Register';
 import Dashboard from '../chat/pages/Dashboard';
+import MemoryDashboard from '../features/memory/pages/MemoryDashboard';
 import Protected from '../features/auth/components/Protected';
 import PublicOnly from '../features/auth/components/PublicOnly';
 
@@ -15,6 +16,14 @@ export const router = createBrowserRouter([
     element: (
       <Protected>
         <Dashboard />
+      </Protected>
+    ),
+  },
+  {
+    path: "/memory",
+    element: (
+      <Protected>
+        <MemoryDashboard />
       </Protected>
     ),
   },

@@ -16,6 +16,10 @@ const messageSchema = new mongoose.Schema(
             enum: [ 'user', 'ai' ],
             required: true,
         },
+        files: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'File',
+        }],
     },
     { timestamps: true }
 );

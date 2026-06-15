@@ -37,13 +37,66 @@ Never:
 - Use unrelated emojis.`
 });
 
-export async function generateResponse(messages) {
-  const langchainMessages = messages.map((message) => {
+export async function generateResponse(messages, memories = [], fileContext = "", imageAttachments = []) {
+  const langchainMessages = messages.map((message, index) => {
     const content = message.content ?? "";
+    const isLastMessage = index === messages.length - 1;
+
+    // Convert last user message to multimodal content if images are attached
+    if (isLastMessage && message.role === "user" && imageAttachments && imageAttachments.length > 0) {
+      const contentList = [
+        {
+          type: "text",
+          text: content,
+        },
+      ];
+
+      for (const img of imageAttachments) {
+        contentList.push({
+          type: "image_url",
+          image_url: `data:${img.mimeType};base64,${img.base64Data}`,
+        });
+      }
+
+      return new HumanMessage({ content: contentList });
+    }
+
     return message.role === "ai"
       ? new AIMessage(content)
       : new HumanMessage(content);
   });
+
+  if (memories && memories.length > 0) {
+    const memoryContext = memories
+      .map((m) => {
+        const formattedKey = m.key
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+        return `- ${formattedKey}: ${m.value}`;
+      })
+      .join("\n");
+
+    langchainMessages.unshift(
+      new SystemMessage(
+        `User Profile Memory:\n${memoryContext}\n\nYou must use these memories naturally in your response if they are relevant to the conversation. If the user asks about themselves or their details, answer using this memory context. If they tell you to forget some details or if they tell you new details, acknowledge it.`
+      )
+    );
+  }
+
+  if (fileContext) {
+    langchainMessages.unshift(
+      new SystemMessage(
+        `Below is the relevant text extracted from the uploaded PDF document(s). Use this context to answer the user's question. If the user refers to the document, base your answer on this text.
+You must always cite the sources at the end of your response under a "Sources:" heading. Use the format:
+Sources:
+- [FileName] (Page [PageNumber])
+Only cite the sources that were actually used to construct the answer.
+
+PDF Document Context:
+${fileContext}`
+      )
+    );
+  }
 
   const response = await geminiModel.invoke(langchainMessages);
 
