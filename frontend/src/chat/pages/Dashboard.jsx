@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../features/auth/hook/useAuth";
 import { useChat } from "../hooks/useChat";
@@ -7,29 +13,31 @@ import {
   getChatMessages,
   getChats,
   sendChatMessage,
-} from "../service/chat.api";
+} from "../service/chat.scoket";
 import "../../css/dashboard.css";
 
 const navItems = ["Home", "Discover", "Library"];
-const answerSources = ["Saved library", "Backend chat API", "Gemini response"];
+const answerSources = [];
 
 const Dashboard = () => {
-  const { initializeSocketCoonection } = useChat();
+  // const { initializeSocketCoonection } = useChat();
   const navigate = useNavigate();
   const { logoutUser } = useAuth();
   const username = useSelector((state) => state.auth.user?.username);
 
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
+  
   const [activeChatId, setActiveChatId] = useState(null);
   const [prompt, setPrompt] = useState("");
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    initializeSocketCoonection();
-  }, [initializeSocketCoonection]);
+  // useEffect(() => {
+  //   initializeSocketCoonection();
+  // }, [initializeSocketCoonection]);
+ 
 
   const loadChats = async () => {
     try {
@@ -217,14 +225,14 @@ const Dashboard = () => {
 
         <section className="dashboard-conversation" aria-label="Current chat">
           <div className="dashboard-chat-title">
-            {activeChat?.title || "New research thread"}
+            {activeChat?.title }
           </div>
 
           {messages.length === 0 && (
             <article className="dashboard-empty-state">
               <h1>What do you want to know?</h1>
               <p>
-                Ask anything and the AI answer will be saved in your Library.
+                Ask anything from the AI.
               </p>
             </article>
           )}
@@ -239,10 +247,36 @@ const Dashboard = () => {
             ) : (
               <article className="dashboard-response-panel" key={message._id}>
                 <div className="dashboard-response-heading">
-                  <span className="dashboard-ai-mark">P</span>
+                  {/* <span className="dashboard-ai-mark">P</span> */}
                   <h2>Answer</h2>
                 </div>
-                <p>{message.content}</p>
+                <div className="markdown-content">
+  <ReactMarkdown
+    remarkPlugins={[remarkGfm]}
+    components={{
+      code({ inline, className, children, ...props }) {
+        const match = /language-(\w+)/.exec(className || "");
+
+        return !inline && match ? (
+          <SyntaxHighlighter
+            style={oneDark}
+            language={match[1]}
+            PreTag="div"
+            {...props}
+          >
+            {String(children).replace(/\n$/, "")}
+          </SyntaxHighlighter>
+        ) : (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        );
+      },
+    }}
+  >
+    {message.content}
+  </ReactMarkdown>
+</div>
                 <div className="dashboard-source-row" aria-label="Sources">
                   {answerSources.map((source) => (
                     <span className="dashboard-source" key={source}>
@@ -257,7 +291,7 @@ const Dashboard = () => {
           {isSending && (
             <article className="dashboard-response-panel dashboard-response-loading">
               <div className="dashboard-response-heading">
-                <span className="dashboard-ai-mark">P</span>
+                {/* <span className="dashboard-ai-mark"></span> */}
                 <h2>Thinking...</h2>
               </div>
               <p>Generating an answer for your question.</p>
@@ -268,15 +302,21 @@ const Dashboard = () => {
         </section>
 
         <form className="dashboard-composer" onSubmit={handleSubmit}>
-          <input
-            aria-label="Chat input"
-            className="dashboard-chat-input"
-            disabled={isSending}
-            onChange={(event) => setPrompt(event.target.value)}
-            placeholder="Ask anything..."
-            type="text"
-            value={prompt}
-          />
+    <textarea
+  aria-label="Chat input"
+  className="dashboard-chat-input"
+  disabled={isSending}
+  value={prompt}
+  placeholder="Ask anything..."
+  rows={1}
+  onChange={(e) => setPrompt(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  }}
+/>
           <button
             type="submit"
             className="dashboard-send-button"

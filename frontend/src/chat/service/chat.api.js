@@ -1,41 +1,46 @@
-const API_BASE_URL = "http://localhost:3000/api/chats";
+import axios from "axios";
 
-async function request(path, options = {}) {
-  const token = localStorage.getItem("token");
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-    ...options,
-  });
+const api = axios.create({
+    baseURL: "http://localhost:3000/api/chats",
+    withCredentials: true,
+});
 
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : {};
+export const sendMessage = async (chatId, message) => {
+    try {
+        const response = await api.post(`/${chatId}/messages`, { message });
+        return response.data;
+    } catch (error) {
+        console.error("Error sending message:", error);
+        return { error: "Failed to send message" };
+    }
+};
 
-  if (!response.ok) {
-    throw data;
-  }
+export const getChats = async () => {
+    try {
+        const response = await api.get("/");
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching chats:", error);
+        return { error: "Failed to fetch chats" };
+    }
+};
 
-  return data;
-}
+export const getMessages = async (chatId) => {
+    try {
+        const response = await api.get(`/${chatId}/messages`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching messages:", error);
+        return { error: "Failed to fetch messages" };
+    }
+};  
 
-export function getChats() {
-  return request("/");
-}
-
-export function getChatMessages(chatId) {
-  return request(`/${chatId}/messages`);
-}
-
-export function sendChatMessage({ message, chatId }) {
-  return request("/message", {
-    method: "POST",
-    body: JSON.stringify({
-      message,
-      ...(chatId ? { chatId } : {}),
-    }),
-  });
-}
+export const deleteChat = async (chatId) => {
+    try {
+        const response = await api.delete(`/${chatId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting chat:", error);
+        return { error: "Failed to delete chat" };
+    }
+};
